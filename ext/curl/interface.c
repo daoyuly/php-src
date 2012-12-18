@@ -638,6 +638,7 @@ PHP_MINIT_FUNCTION(curl)
 	REGISTER_CURL_CONSTANT(CURLOPT_QUOTE);
 	REGISTER_CURL_CONSTANT(CURLOPT_RANDOM_FILE);
 	REGISTER_CURL_CONSTANT(CURLOPT_RANGE);
+	REGISTER_CURL_CONSTANT(CURLOPT_READDATA);
 	REGISTER_CURL_CONSTANT(CURLOPT_READFUNCTION);
 	REGISTER_CURL_CONSTANT(CURLOPT_REFERER);
 	REGISTER_CURL_CONSTANT(CURLOPT_RESUME_FROM);
@@ -2013,6 +2014,10 @@ static int _php_curl_setopt(php_curl *ch, long option, zval **zvalue, zval *retu
 
 	switch (option) {
 		/* Long options */
+		case CURLOPT_SSL_VERIFYHOST:
+			if(Z_TYPE_PP(zvalue)==IS_BOOL && Z_BVAL_PP(zvalue)) {
+				php_error_docref(NULL TSRMLS_CC, E_NOTICE, "CURLOPT_SSL_VERIFYHOST set to true which disables common name validation (setting CURLOPT_SSL_VERIFYHOST to 2 enables common name validation)");
+			}
 		case CURLOPT_AUTOREFERER:
 		case CURLOPT_BUFFERSIZE:
 		case CURLOPT_CLOSEPOLICY:
@@ -2047,7 +2052,6 @@ static int _php_curl_setopt(php_curl *ch, long option, zval **zvalue, zval *retu
 		case CURLOPT_PUT:
 		case CURLOPT_RESUME_FROM:
 		case CURLOPT_SSLVERSION:
-		case CURLOPT_SSL_VERIFYHOST:
 		case CURLOPT_SSL_VERIFYPEER:
 		case CURLOPT_TIMECONDITION:
 		case CURLOPT_TIMEOUT:
@@ -2232,10 +2236,6 @@ static int _php_curl_setopt(php_curl *ch, long option, zval **zvalue, zval *retu
 		case CURLOPT_MAIL_AUTH:
 #endif
 		{
-#if LIBCURL_VERSION_NUM < 0x071100
-			char *copystr = NULL;
-#endif
-
 			convert_to_string_ex(zvalue);
 			if (option == CURLOPT_URL) {
 				if (!php_curl_option_url(ch, Z_STRVAL_PP(zvalue), Z_STRLEN_PP(zvalue) TSRMLS_CC)) {
