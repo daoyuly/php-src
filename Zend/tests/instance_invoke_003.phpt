@@ -20,10 +20,8 @@ class Foo
 (new Foo())()->dummy();
 var_dump((new Foo())->var);
 var_dump((new Foo())->noexists);
-((new Foo())->__invoke())()->dummy();
 ?>
 --EXPECT--
 string(10) "Foo::dummy"
 string(3) "foo"
 string(8) "noexists"
-string(10) "Foo::dummy"

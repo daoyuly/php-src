@@ -7,7 +7,7 @@ function a() {
 }
 
 var_dump(is_callable(a()));
-(a())();
+a()();
 ?>
 --EXPECTF--
 bool(false)

@@ -19,10 +19,8 @@ class C {
       return $this;
   }
 
-  public function closure() {
-      return function() {
-         echo "done";
-      };
+  public function done() {
+      echo "done";
   }
 }
 
@@ -30,7 +28,7 @@ var_dump(is_callable(a()()));
 
 $b = new C();
 
-(a()()($b)()->closure())();
+a()()($b)()->done();
 ?>
 --EXPECTF--
 bool(true)

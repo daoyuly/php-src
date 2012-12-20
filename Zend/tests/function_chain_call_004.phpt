@@ -9,7 +9,7 @@ class Foo {
 } 
 
 var_dump(is_callable(Foo::bar()));
-(Foo::bar())();
+Foo::bar()();
 ?>
 --EXPECTF--
 bool(false)
