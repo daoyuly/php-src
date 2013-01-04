@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        | 
@@ -4936,7 +4936,7 @@ void zend_do_begin_class_declaration(const znode *class_token, znode *class_name
 		tmp.u.constant = *CG(current_namespace);
 		zval_copy_ctor(&tmp.u.constant);
 		zend_do_build_namespace_name(&tmp, &tmp, class_name TSRMLS_CC);
-		class_name = &tmp;
+		*class_name = tmp;
 		efree(lcname);
 		lcname = zend_str_tolower_dup(Z_STRVAL(class_name->u.constant), Z_STRLEN(class_name->u.constant));
 	}
