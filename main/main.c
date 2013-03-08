@@ -521,6 +521,7 @@ PHP_INI_BEGIN()
 	STD_PHP_INI_ENTRY("default_mimetype",		SAPI_DEFAULT_MIMETYPE,	PHP_INI_ALL,	OnUpdateString,			default_mimetype,		sapi_globals_struct,sapi_globals)
 	STD_PHP_INI_ENTRY("error_log",				NULL,		PHP_INI_ALL,		OnUpdateErrorLog,			error_log,				php_core_globals,	core_globals)
 	STD_PHP_INI_ENTRY("extension_dir",			PHP_EXTENSION_DIR,		PHP_INI_SYSTEM,		OnUpdateStringUnempty,	extension_dir,			php_core_globals,	core_globals)
+	STD_PHP_INI_ENTRY("sys_temp_dir",			NULL,		PHP_INI_SYSTEM,		OnUpdateStringUnempty,	sys_temp_dir,			php_core_globals,	core_globals)
 	STD_PHP_INI_ENTRY("include_path",			PHP_INCLUDE_PATH,		PHP_INI_ALL,		OnUpdateStringUnempty,	include_path,			php_core_globals,	core_globals)
 	PHP_INI_ENTRY("max_execution_time",			"30",		PHP_INI_ALL,			OnUpdateTimeout)
 	STD_PHP_INI_ENTRY("open_basedir",			NULL,		PHP_INI_ALL,		OnUpdateBaseDir,			open_basedir,			php_core_globals,	core_globals)
@@ -1331,7 +1332,7 @@ PHPAPI int php_stream_open_for_zend_ex(const char *filename, zend_file_handle *h
 		handle->handle.stream.reader  = (zend_stream_reader_t)_php_stream_read;
 		handle->handle.stream.fsizer  = php_zend_stream_fsizer;
 		handle->handle.stream.isatty  = 0;
-		/* can we mmap immeadiately? */
+		/* can we mmap immediately? */
 		memset(&handle->handle.stream.mmap, 0, sizeof(handle->handle.stream.mmap));
 		len = php_zend_stream_fsizer(stream TSRMLS_CC);
 		if (len != 0
@@ -2181,7 +2182,7 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 	zend_set_utility_values(&zuv);
 	php_startup_sapi_content_types(TSRMLS_C);
 
-	/* startup extensions staticly compiled in */
+	/* startup extensions statically compiled in */
 	if (php_register_internal_extensions_func(TSRMLS_C) == FAILURE) {
 		php_printf("Unable to start builtin modules\n");
 		return FAILURE;

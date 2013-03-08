@@ -40,6 +40,9 @@ PHP X.Y UPGRADE NOTES
 4. Changed Functions
 ========================================
 
+- cURL:
+  CURLOPT_SAFE_UPLOAD is now turned on by default and uploads with @file 
+  do not work unless it is explicitly set to false.
 
 ========================================
 5. New Functions
@@ -64,6 +67,7 @@ PHP X.Y UPGRADE NOTES
 ========================================
 9. New Global Constants
 ========================================
+
 
 ========================================
 10. Changes to INI File Handling

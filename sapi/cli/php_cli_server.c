@@ -103,6 +103,8 @@
 #include "php_http_parser.h"
 #include "php_cli_server.h"
 
+#include "php_cli_process_title.h"
+
 #define OUTPUT_NOT_CHECKED -1
 #define OUTPUT_IS_TTY 1
 #define OUTPUT_NOT_TTY 0
@@ -236,17 +238,21 @@ static php_cli_server_http_reponse_status_code_pair status_map[] = {
 	{ 415, "Unsupported Media Type" },
 	{ 416, "Requested Range Not Satisfiable" },
 	{ 417, "Expectation Failed" },
+	{ 428, "Precondition Required" },
+	{ 429, "Too Many Requests" },
+	{ 431, "Request Header Fields Too Large" },
 	{ 500, "Internal Server Error" },
 	{ 501, "Not Implemented" },
 	{ 502, "Bad Gateway" },
 	{ 503, "Service Unavailable" },
 	{ 504, "Gateway Timeout" },
 	{ 505, "HTTP Version Not Supported" },
+	{ 511, "Network Authentication Required" },
 };
 
 static php_cli_server_http_reponse_status_code_pair template_map[] = {
 	{ 400, "<h1>%s</h1><p>Your browser sent a request that this server could not understand.</p>" },
-	{ 404, "<h1>%s</h1><p>The requested resource %s was not found on this server.</p>" },
+	{ 404, "<h1>%s</h1><p>The requested resource <code class=\"url\">%s</code> was not found on this server.</p>" },
 	{ 500, "<h1>%s</h1><p>The server is temporarily unavailable.</p>" },
 	{ 501, "<h1>%s</h1><p>Request method not supported.</p>" }
 };
@@ -283,8 +289,10 @@ ZEND_DECLARE_MODULE_GLOBALS(cli_server);
  * copied from ext/standard/info.c
  */
 static const char php_cli_server_css[] = "<style>\n" \
-										"body { background-color: #ffffff; color: #000000; }\n" \
-										"h1 { font-family: sans-serif; font-size: 150%; background-color: #9999cc; font-weight: bold; color: #000000; margin-top: 0;}\n" \
+										"body { background-color: #fcfcfc; color: #333333; margin: 0; padding:0; }\n" \
+										"h1 { font-size: 1.5em; font-weight: normal; background-color: #9999cc; min-height:2em; line-height:2em; border-bottom: 1px inset black; margin: 0; }\n" \
+										"h1, p { padding-left: 10px; }\n" \
+										"code.url { background-color: #eeeeee; font-family:monospace; padding:0 2px;}\n" \
 										"</style>\n";
 /* }}} */
 
@@ -422,6 +430,12 @@ zend_module_entry cli_server_module_entry = {
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
+
+const zend_function_entry server_additional_functions[] = {
+	PHP_FE(cli_set_process_title,        arginfo_cli_set_process_title)
+	PHP_FE(cli_get_process_title,        arginfo_cli_get_process_title)
+	{NULL, NULL, NULL}
+};
 
 static int sapi_cli_server_startup(sapi_module_struct *sapi_module) /* {{{ */
 {
@@ -710,10 +724,9 @@ static void php_cli_server_poller_remove(php_cli_server_poller *poller, int mode
 	if (fd == poller->max_fd) {
 		while (fd > 0) {
 			fd--;
-			if (((unsigned int *)&poller->rfds)[fd / (8 * sizeof(unsigned int))] || ((unsigned int *)&poller->wfds)[fd / (8 * sizeof(unsigned int))]) {
+			if (PHP_SAFE_FD_ISSET(fd, &poller->rfds) || PHP_SAFE_FD_ISSET(fd, &poller->wfds)) {
 				break;
 			}
-			fd -= fd % (8 * sizeof(unsigned int));
 		}
 		poller->max_fd = fd;
 	}
@@ -772,23 +785,20 @@ static int php_cli_server_poller_iter_on_active(php_cli_server_poller *poller, v
 	}
 
 #else
-	php_socket_t fd = 0;
+	php_socket_t fd;
 	const php_socket_t max_fd = poller->max_fd;
-	const unsigned int *pr = (unsigned int *)&poller->active.rfds,
-	                   *pw = (unsigned int *)&poller->active.wfds,
-	                   *e = pr + (max_fd + (8 * sizeof(unsigned int)) - 1) / (8 * sizeof(unsigned int));
-	unsigned int mask;
-	while (pr < e && fd <= max_fd) {
-		for (mask = 1; mask; mask <<= 1, fd++) {
-			int events = (*pr & mask ? POLLIN: 0) | (*pw & mask ? POLLOUT: 0);
-			if (events) {
-				if (SUCCESS != callback(opaque, fd, events)) {
-					retval = FAILURE;
-				}
-			}
+
+	for (fd=0 ; fd<=max_fd ; fd++)  {
+		if (PHP_SAFE_FD_ISSET(fd, &poller->active.rfds)) {
+                if (SUCCESS != callback(opaque, fd, POLLIN)) {
+                    retval = FAILURE;
+                }
 		}
-		pr++;
-		pw++;
+		if (PHP_SAFE_FD_ISSET(fd, &poller->active.wfds)) {
+                if (SUCCESS != callback(opaque, fd, POLLOUT)) {
+                    retval = FAILURE;
+                }
+		}
 	}
 #endif
 	return retval;
