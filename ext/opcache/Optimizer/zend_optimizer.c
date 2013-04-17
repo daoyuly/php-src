@@ -110,6 +110,7 @@ int zend_optimizer_add_literal(zend_op_array *op_array, const zval *zv TSRMLS_DC
 #include "Optimizer/nop_removal.c"
 #include "Optimizer/block_pass.c"
 #include "Optimizer/optimize_temp_vars_5.c"
+#include "Optimizer/optimize_func_calls.c"
 
 static void zend_optimize(zend_op_array           *op_array,
                           zend_persistent_script  *script,
@@ -147,6 +148,11 @@ static void zend_optimize(zend_op_array           *op_array,
 	 * - CFG optimization
 	 */
 #include "Optimizer/pass5.c"
+
+	/* pass 6:
+	 * INIT_FCALL_BY_NAME -> DO_FCALL
+	 */
+#include "Optimizer/pass6.c"
 
 	 /* pass 9:
 	 * - Optimize temp variables usage
