@@ -180,8 +180,7 @@ static zend_always_inline zval *_get_zval_ptr_tmp(zend_uint var, const temp_vari
 static zend_always_inline zval *_get_zval_ptr_var(zend_uint var, const temp_variable *Ts, zend_free_op *should_free TSRMLS_DC)
 {
 	zval *ptr = T(var).var.ptr;
-
-	PZVAL_UNLOCK(ptr, should_free);
+	should_free->var = ptr;
 	return ptr;
 }
 
@@ -376,10 +375,10 @@ static zend_always_inline zval **_get_zval_ptr_ptr_var(zend_uint var, const temp
 	zval** ptr_ptr = T(var).var.ptr_ptr;
 
 	if (EXPECTED(ptr_ptr != NULL)) {
-		PZVAL_UNLOCK(*ptr_ptr, should_free);
+		should_free->var = *ptr_ptr;
 	} else {
 		/* string offset */
-		PZVAL_UNLOCK(T(var).str_offset.str, should_free);
+		should_free->var = T(var).str_offset.str;
 	}
 	return ptr_ptr;
 }
@@ -1092,10 +1091,6 @@ static void zend_fetch_dimension_address(temp_variable *result, zval **container
 	switch (Z_TYPE_P(container)) {
 
 		case IS_ARRAY:
-			if (type != BP_VAR_UNSET && Z_REFCOUNT_P(container)>1 && !PZVAL_IS_REF(container)) {
-				SEPARATE_ZVAL(container_ptr);
-				container = *container_ptr;
-			}
 fetch_from_array:
 			if (dim == NULL) {
 				zval *new_zval = &EG(uninitialized_zval);
