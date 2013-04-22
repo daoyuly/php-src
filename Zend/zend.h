@@ -799,6 +799,12 @@ END_EXTERN_C()
 		FREE_ZVAL(pzv);						\
 	}										\
 	INIT_PZVAL(&(zv));
+
+#define UNSET_ISREF_IF_REFCOUNT(pz, c)      \
+		if (Z_ISREF_P((pz)) &&              \
+			Z_REFCOUNT_P((pz)) < (c)) {     \
+			Z_UNSET_ISREF_P((pz));          \
+		}                                   
 	
 #define MAKE_COPY_ZVAL(ppzv, pzv) 	\
 	INIT_PZVAL_COPY(pzv, *(ppzv));	\
