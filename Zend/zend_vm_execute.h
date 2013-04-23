@@ -3779,13 +3779,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CONST_CONST_HANDLER(ZEND_O
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CONST == IS_VAR || IS_CONST == IS_CV) && opline->extended_value) {
+	if (IS_CONST == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CONST == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_CONST == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -4125,11 +4136,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CONST_CONST_HANDLER(ZEND_OPCODE_HANDLE
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CONST == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CONST == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -4679,13 +4698,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CONST_TMP_HANDLER(ZEND_OPC
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CONST == IS_VAR || IS_CONST == IS_CV) && opline->extended_value) {
+	if (IS_CONST == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CONST == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_CONST == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -4824,11 +4854,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CONST_TMP_HANDLER(ZEND_OPCODE_HANDLER_
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CONST == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CONST == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -5542,13 +5580,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CONST_VAR_HANDLER(ZEND_OPC
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CONST == IS_VAR || IS_CONST == IS_CV) && opline->extended_value) {
+	if (IS_CONST == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CONST == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_CONST == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -5848,11 +5897,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CONST_VAR_HANDLER(ZEND_OPCODE_HANDLER_
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CONST == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CONST == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -6242,13 +6299,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CONST_UNUSED_HANDLER(ZEND_
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CONST == IS_VAR || IS_CONST == IS_CV) && opline->extended_value) {
+	if (IS_CONST == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CONST == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_CONST == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -6566,11 +6634,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CONST_UNUSED_HANDLER(ZEND_OPCODE_HANDL
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CONST == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CONST == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -7179,13 +7255,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CONST_CV_HANDLER(ZEND_OPCO
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CONST == IS_VAR || IS_CONST == IS_CV) && opline->extended_value) {
+	if (IS_CONST == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CONST == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_CONST == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -7324,11 +7411,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CONST_CV_HANDLER(ZEND_OPCODE_HANDLER_A
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CONST == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CONST == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -9063,13 +9158,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_TMP_CONST_HANDLER(ZEND_OPC
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_TMP_VAR == IS_VAR || IS_TMP_VAR == IS_CV) && opline->extended_value) {
+	if (IS_TMP_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_TMP_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_TMP_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -9369,11 +9475,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_TMP_CONST_HANDLER(ZEND_OPCODE_HANDLER_
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_TMP_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_TMP_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -9927,13 +10041,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_TMP_TMP_HANDLER(ZEND_OPCOD
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_TMP_VAR == IS_VAR || IS_TMP_VAR == IS_CV) && opline->extended_value) {
+	if (IS_TMP_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_TMP_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_TMP_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -10072,11 +10197,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_TMP_TMP_HANDLER(ZEND_OPCODE_HANDLER_AR
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_TMP_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_TMP_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -10794,13 +10927,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_TMP_VAR_HANDLER(ZEND_OPCOD
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_TMP_VAR == IS_VAR || IS_TMP_VAR == IS_CV) && opline->extended_value) {
+	if (IS_TMP_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_TMP_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_TMP_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -11100,11 +11244,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_TMP_VAR_HANDLER(ZEND_OPCODE_HANDLER_AR
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_TMP_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_TMP_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -11373,13 +11525,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_TMP_UNUSED_HANDLER(ZEND_OP
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_TMP_VAR == IS_VAR || IS_TMP_VAR == IS_CV) && opline->extended_value) {
+	if (IS_TMP_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_TMP_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_TMP_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -11679,11 +11842,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_TMP_UNUSED_HANDLER(ZEND_OPCODE_HANDLER
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_TMP_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_TMP_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -12234,13 +12405,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_TMP_CV_HANDLER(ZEND_OPCODE
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_TMP_VAR == IS_VAR || IS_TMP_VAR == IS_CV) && opline->extended_value) {
+	if (IS_TMP_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = NULL;
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_TMP_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = NULL;
 
 		if (IS_TMP_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -12379,11 +12561,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_TMP_CV_HANDLER(ZEND_OPCODE_HANDLER_ARG
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_TMP_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_TMP_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -12515,20 +12705,25 @@ static int ZEND_FASTCALL  ZEND_PRE_INC_SPEC_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_VAR == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		if (RETURN_VALUE_USED(opline)) {
-			PZVAL_LOCK(&EG(uninitialized_zval));
-			AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+	if (IS_VAR == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
 		}
-		zval_ptr_dtor(&free_op1.var);;
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			if (RETURN_VALUE_USED(opline)) {
+				PZVAL_LOCK(&EG(uninitialized_zval));
+				AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+			}
+			zval_ptr_dtor(&free_op1.var);;
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -12562,20 +12757,25 @@ static int ZEND_FASTCALL  ZEND_PRE_DEC_SPEC_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARGS
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_VAR == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		if (RETURN_VALUE_USED(opline)) {
-			PZVAL_LOCK(&EG(uninitialized_zval));
-			AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+	if (IS_VAR == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
 		}
-		zval_ptr_dtor(&free_op1.var);;
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			if (RETURN_VALUE_USED(opline)) {
+				PZVAL_LOCK(&EG(uninitialized_zval));
+				AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+			}
+			zval_ptr_dtor(&free_op1.var);;
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -12609,21 +12809,26 @@ static int ZEND_FASTCALL  ZEND_POST_INC_SPEC_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARG
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_VAR == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
-		zval_ptr_dtor(&free_op1.var);;
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+	if (IS_VAR == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
+		}
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
+			zval_ptr_dtor(&free_op1.var);;
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
 
 	retval = &EX_T(opline->result.var).tmp_var;
 	ZVAL_COPY_VALUE(retval, *var_ptr);
 	zendi_zval_copy_ctor(*retval);
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -12652,21 +12857,26 @@ static int ZEND_FASTCALL  ZEND_POST_DEC_SPEC_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARG
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_VAR == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
-		zval_ptr_dtor(&free_op1.var);;
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+	if (IS_VAR == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
+		}
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
+			zval_ptr_dtor(&free_op1.var);;
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
 
 	retval = &EX_T(opline->result.var).tmp_var;
 	ZVAL_COPY_VALUE(retval, *var_ptr);
 	zendi_zval_copy_ctor(*retval);
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -13083,8 +13293,8 @@ static int ZEND_FASTCALL  ZEND_SEND_VAR_NO_REF_SPEC_VAR_HANDLER(ZEND_OPCODE_HAND
 	if ((!(opline->extended_value & ZEND_ARG_SEND_FUNCTION) ||
 	     EX_T(opline->op1.var).var.fcall_returned_reference) &&
 	    varptr != &EG(uninitialized_zval) &&
-	    (PZVAL_IS_REF(varptr) ||
-	     (Z_REFCOUNT_P(varptr) == 1 && (IS_VAR == IS_CV || free_op1.var)))) {
+	    (PZVAL_IS_REF(varptr) || Z_REFCOUNT_P(varptr) == 1 ||
+		 (Z_REFCOUNT_P(varptr) == 2 && IS_VAR == IS_VAR))) {
 		Z_SET_ISREF_P(varptr);
 		Z_ADDREF_P(varptr);
 		zend_vm_stack_push(varptr TSRMLS_CC);
@@ -13129,7 +13339,8 @@ static int ZEND_FASTCALL  ZEND_SEND_REF_SPEC_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARG
 		ZEND_VM_NEXT_OPCODE();
 	}
 
-	if (EX(function_state).function->type == ZEND_INTERNAL_FUNCTION && !ARG_SHOULD_BE_SENT_BY_REF(EX(call)->fbc, opline->op2.opline_num)) {
+	if (EX(function_state).function->type == ZEND_INTERNAL_FUNCTION &&
+			!ARG_SHOULD_BE_SENT_BY_REF(EX(call)->fbc, opline->op2.opline_num)) {
 		return zend_send_by_var_helper_SPEC_VAR(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
 	}
 
@@ -14952,14 +15163,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_VAR_CONST_HANDLER(ZEND_OPCOD
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -15237,17 +15446,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_VAR_CONST_HANDLER(ZEND_OPCOD
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 	property = opline->op2.zv;
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_VAR == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -15776,13 +15983,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_VAR_CONST_HANDLER(ZEND_OPC
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_VAR == IS_VAR || IS_VAR == IS_CV) && opline->extended_value) {
+	if (IS_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
 		if (IS_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -16377,11 +16595,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_VAR_CONST_HANDLER(ZEND_OPCODE_HANDLER_
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -17398,14 +17624,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_VAR_TMP_HANDLER(ZEND_OPCODE_
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -17684,17 +17908,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_VAR_TMP_HANDLER(ZEND_OPCODE_
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 	property = _get_zval_ptr_tmp(opline->op2.var, execute_data, &free_op2 TSRMLS_CC);
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (1) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (1) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_VAR == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -18131,13 +18353,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_VAR_TMP_HANDLER(ZEND_OPCOD
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_VAR == IS_VAR || IS_VAR == IS_CV) && opline->extended_value) {
+	if (IS_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
 		if (IS_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -18571,11 +18804,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_VAR_TMP_HANDLER(ZEND_OPCODE_HANDLER_AR
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -19756,14 +19997,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_VAR_VAR_HANDLER(ZEND_OPCODE_
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -20042,17 +20281,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_VAR_VAR_HANDLER(ZEND_OPCODE_
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 	property = _get_zval_ptr_var(opline->op2.var, execute_data, &free_op2 TSRMLS_CC);
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_VAR == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -20541,13 +20778,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_VAR_VAR_HANDLER(ZEND_OPCOD
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_VAR == IS_VAR || IS_VAR == IS_CV) && opline->extended_value) {
+	if (IS_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
 		if (IS_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -21142,11 +21390,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_VAR_VAR_HANDLER(ZEND_OPCODE_HANDLER_AR
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -22005,13 +22261,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_VAR_UNUSED_HANDLER(ZEND_OP
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_VAR == IS_VAR || IS_VAR == IS_CV) && opline->extended_value) {
+	if (IS_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
 		if (IS_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -22332,11 +22599,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_VAR_UNUSED_HANDLER(ZEND_OPCODE_HANDLER
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -23350,14 +23625,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_VAR_CV_HANDLER(ZEND_OPCODE_H
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -23635,17 +23908,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_VAR_CV_HANDLER(ZEND_OPCODE_H
 	container = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 	property = _get_zval_ptr_cv_BP_VAR_R(execute_data, opline->op2.var TSRMLS_CC);
 
-	if (IS_VAR == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_VAR == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_VAR == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_VAR == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -24129,13 +24400,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_VAR_CV_HANDLER(ZEND_OPCODE
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_VAR == IS_VAR || IS_VAR == IS_CV) && opline->extended_value) {
+	if (IS_VAR == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_VAR == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_var(opline->op1.var, execute_data, &free_op1 TSRMLS_CC);
 
 		if (IS_VAR == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -24569,11 +24851,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_VAR_CV_HANDLER(ZEND_OPCODE_HANDLER_ARG
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_VAR == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_VAR == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -25466,17 +25756,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_UNUSED_CONST_HANDLER(ZEND_OP
 	container = _get_obj_zval_ptr_ptr_unused(TSRMLS_C);
 	property = opline->op2.zv;
 
-	if (IS_UNUSED == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_UNUSED == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_UNUSED == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_UNUSED == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -26113,11 +26401,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_UNUSED_CONST_HANDLER(ZEND_OPCODE_HANDL
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_UNUSED == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_UNUSED == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -26921,17 +27217,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_UNUSED_TMP_HANDLER(ZEND_OPCO
 	container = _get_obj_zval_ptr_ptr_unused(TSRMLS_C);
 	property = _get_zval_ptr_tmp(opline->op2.var, execute_data, &free_op2 TSRMLS_CC);
 
-	if (IS_UNUSED == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (1) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_UNUSED == IS_VAR) {
+		if (1) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_UNUSED == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_UNUSED == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -27473,11 +27767,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_UNUSED_TMP_HANDLER(ZEND_OPCODE_HANDLER
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_UNUSED == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_UNUSED == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -28281,17 +28583,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_UNUSED_VAR_HANDLER(ZEND_OPCO
 	container = _get_obj_zval_ptr_ptr_unused(TSRMLS_C);
 	property = _get_zval_ptr_var(opline->op2.var, execute_data, &free_op2 TSRMLS_CC);
 
-	if (IS_UNUSED == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_UNUSED == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_UNUSED == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_UNUSED == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -28833,11 +29133,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_UNUSED_VAR_HANDLER(ZEND_OPCODE_HANDLER
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_UNUSED == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_UNUSED == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -29261,11 +29569,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_UNUSED_UNUSED_HANDLER(ZEND_OPCODE_HAND
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_UNUSED == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_UNUSED == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -30068,17 +30384,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_UNUSED_CV_HANDLER(ZEND_OPCOD
 	container = _get_obj_zval_ptr_ptr_unused(TSRMLS_C);
 	property = _get_zval_ptr_cv_BP_VAR_R(execute_data, opline->op2.var TSRMLS_CC);
 
-	if (IS_UNUSED == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_UNUSED == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_UNUSED == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_UNUSED == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -30618,11 +30932,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_UNUSED_CV_HANDLER(ZEND_OPCODE_HANDLER_
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_UNUSED == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_UNUSED == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -30754,20 +31076,25 @@ static int ZEND_FASTCALL  ZEND_PRE_INC_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_cv_BP_VAR_RW(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_CV == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		if (RETURN_VALUE_USED(opline)) {
-			PZVAL_LOCK(&EG(uninitialized_zval));
-			AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+	if (IS_CV == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
 		}
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			if (RETURN_VALUE_USED(opline)) {
+				PZVAL_LOCK(&EG(uninitialized_zval));
+				AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+			}
 
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -30800,20 +31127,25 @@ static int ZEND_FASTCALL  ZEND_PRE_DEC_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_cv_BP_VAR_RW(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_CV == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		if (RETURN_VALUE_USED(opline)) {
-			PZVAL_LOCK(&EG(uninitialized_zval));
-			AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+	if (IS_CV == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
 		}
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			if (RETURN_VALUE_USED(opline)) {
+				PZVAL_LOCK(&EG(uninitialized_zval));
+				AI_SET_PTR(&EX_T(opline->result.var), &EG(uninitialized_zval));
+			}
 
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -30846,21 +31178,26 @@ static int ZEND_FASTCALL  ZEND_POST_INC_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_cv_BP_VAR_RW(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_CV == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
+	if (IS_CV == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
+		}
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
 
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
 
 	retval = &EX_T(opline->result.var).tmp_var;
 	ZVAL_COPY_VALUE(retval, *var_ptr);
 	zendi_zval_copy_ctor(*retval);
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -30888,21 +31225,26 @@ static int ZEND_FASTCALL  ZEND_POST_DEC_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS
 	SAVE_OPLINE();
 	var_ptr = _get_zval_ptr_ptr_cv_BP_VAR_RW(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_VAR && UNEXPECTED(var_ptr == NULL)) {
-		zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
-	}
-	if (IS_CV == IS_VAR && UNEXPECTED(*var_ptr == &EG(error_zval))) {
-		ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
+	if (IS_CV == IS_VAR) {
+		if (UNEXPECTED(var_ptr == NULL)) {
+			zend_error_noreturn(E_ERROR, "Cannot increment/decrement overloaded objects nor string offsets");
+		}
+		if (UNEXPECTED(*var_ptr == &EG(error_zval))) {
+			ZVAL_NULL(&EX_T(opline->result.var).tmp_var);
 
-		CHECK_EXCEPTION();
-		ZEND_VM_NEXT_OPCODE();
+			CHECK_EXCEPTION();
+			ZEND_VM_NEXT_OPCODE();
+		}
+		if (!Z_ISREF_PP(var_ptr) && Z_REFCOUNT_PP(var_ptr) > 2) {
+			SEPARATE_ZVAL(var_ptr);
+		}
+	} else {
+		SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 	}
 
 	retval = &EX_T(opline->result.var).tmp_var;
 	ZVAL_COPY_VALUE(retval, *var_ptr);
 	zendi_zval_copy_ctor(*retval);
-
-	SEPARATE_ZVAL_IF_NOT_REF(var_ptr);
 
 	if (UNEXPECTED(Z_TYPE_PP(var_ptr) == IS_OBJECT)
 	   && Z_OBJ_HANDLER_PP(var_ptr, get)
@@ -31286,7 +31628,7 @@ static int ZEND_FASTCALL zend_send_by_var_helper_SPEC_CV(ZEND_OPCODE_HANDLER_ARG
 static int ZEND_FASTCALL  ZEND_SEND_VAR_NO_REF_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS)
 {
 	USE_OPLINE
-	zend_free_op free_op1;
+
 	zval *varptr;
 
 	SAVE_OPLINE();
@@ -31302,8 +31644,8 @@ static int ZEND_FASTCALL  ZEND_SEND_VAR_NO_REF_SPEC_CV_HANDLER(ZEND_OPCODE_HANDL
 	if ((!(opline->extended_value & ZEND_ARG_SEND_FUNCTION) ||
 	     EX_T(opline->op1.var).var.fcall_returned_reference) &&
 	    varptr != &EG(uninitialized_zval) &&
-	    (PZVAL_IS_REF(varptr) ||
-	     (Z_REFCOUNT_P(varptr) == 1 && (IS_CV == IS_CV || free_op1.var)))) {
+	    (PZVAL_IS_REF(varptr) || Z_REFCOUNT_P(varptr) == 1 ||
+		 (Z_REFCOUNT_P(varptr) == 2 && IS_CV == IS_VAR))) {
 		Z_SET_ISREF_P(varptr);
 		Z_ADDREF_P(varptr);
 		zend_vm_stack_push(varptr TSRMLS_CC);
@@ -31348,7 +31690,8 @@ static int ZEND_FASTCALL  ZEND_SEND_REF_SPEC_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS
 		ZEND_VM_NEXT_OPCODE();
 	}
 
-	if (EX(function_state).function->type == ZEND_INTERNAL_FUNCTION && !ARG_SHOULD_BE_SENT_BY_REF(EX(call)->fbc, opline->op2.opline_num)) {
+	if (EX(function_state).function->type == ZEND_INTERNAL_FUNCTION &&
+			!ARG_SHOULD_BE_SENT_BY_REF(EX(call)->fbc, opline->op2.opline_num)) {
 		return zend_send_by_var_helper_SPEC_CV(ZEND_OPCODE_HANDLER_ARGS_PASSTHRU);
 	}
 
@@ -33021,14 +33364,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_CV_CONST_HANDLER(ZEND_OPCODE
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -33300,17 +33641,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_CV_CONST_HANDLER(ZEND_OPCODE
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 	property = opline->op2.zv;
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_CV == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -33619,13 +33958,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CV_CONST_HANDLER(ZEND_OPCO
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CV == IS_VAR || IS_CV == IS_CV) && opline->extended_value) {
+	if (IS_CV == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CV == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
 
 		if (IS_CV == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -34216,11 +34566,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CV_CONST_HANDLER(ZEND_OPCODE_HANDLER_A
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CV == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CV == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -35232,14 +35590,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_CV_TMP_HANDLER(ZEND_OPCODE_H
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -35512,17 +35868,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_CV_TMP_HANDLER(ZEND_OPCODE_H
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 	property = _get_zval_ptr_tmp(opline->op2.var, execute_data, &free_op2 TSRMLS_CC);
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (1) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (1) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_CV == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -35834,13 +36188,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CV_TMP_HANDLER(ZEND_OPCODE
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CV == IS_VAR || IS_CV == IS_CV) && opline->extended_value) {
+	if (IS_CV == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CV == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
 
 		if (IS_CV == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -36270,11 +36635,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CV_TMP_HANDLER(ZEND_OPCODE_HANDLER_ARG
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CV == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CV == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -37450,14 +37823,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_CV_VAR_HANDLER(ZEND_OPCODE_H
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -37730,17 +38101,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_CV_VAR_HANDLER(ZEND_OPCODE_H
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 	property = _get_zval_ptr_var(opline->op2.var, execute_data, &free_op2 TSRMLS_CC);
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_CV == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -38103,13 +38472,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CV_VAR_HANDLER(ZEND_OPCODE
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CV == IS_VAR || IS_CV == IS_CV) && opline->extended_value) {
+	if (IS_CV == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CV == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
 
 		if (IS_CV == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -38700,11 +39080,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CV_VAR_HANDLER(ZEND_OPCODE_HANDLER_ARG
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CV == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CV == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -39437,13 +39825,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CV_UNUSED_HANDLER(ZEND_OPC
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CV == IS_VAR || IS_CV == IS_CV) && opline->extended_value) {
+	if (IS_CV == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CV == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
 
 		if (IS_CV == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -39743,11 +40142,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CV_UNUSED_HANDLER(ZEND_OPCODE_HANDLER_
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CV == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CV == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
@@ -40756,14 +41163,12 @@ static int ZEND_FASTCALL  ZEND_FETCH_DIM_UNSET_SPEC_CV_CV_HANDLER(ZEND_OPCODE_HA
 	SAVE_OPLINE();
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an array");
 			}
@@ -41035,17 +41440,15 @@ static int ZEND_FASTCALL  ZEND_FETCH_OBJ_UNSET_SPEC_CV_CV_HANDLER(ZEND_OPCODE_HA
 	container = _get_zval_ptr_ptr_cv_BP_VAR_UNSET(execute_data, opline->op1.var TSRMLS_CC);
 	property = _get_zval_ptr_cv_BP_VAR_R(execute_data, opline->op2.var TSRMLS_CC);
 
-	if (IS_CV == IS_CV) {
-		if (container != &EG(uninitialized_zval_ptr)) {
-			SEPARATE_ZVAL_IF_NOT_REF(container);
-		}
-	}
-	if (0) {
-		MAKE_REAL_ZVAL_PTR(property);
-	}
-
 	do {
-		if (IS_CV == IS_VAR) {
+		if (0) {
+			MAKE_REAL_ZVAL_PTR(property);
+		}
+		if (IS_CV == IS_CV) {
+			if (container != &EG(uninitialized_zval_ptr)) {
+				SEPARATE_ZVAL_IF_NOT_REF(container);
+			}
+		} else if (IS_CV == IS_VAR) {
 			if (UNEXPECTED(container == NULL)) {
 				zend_error_noreturn(E_ERROR, "Cannot use string offset as an object");
 			}
@@ -41403,13 +41806,24 @@ static int ZEND_FASTCALL  ZEND_ADD_ARRAY_ELEMENT_SPEC_CV_CV_HANDLER(ZEND_OPCODE_
 	zval *expr_ptr;
 
 	SAVE_OPLINE();
-	if ((IS_CV == IS_VAR || IS_CV == IS_CV) && opline->extended_value) {
+	if (IS_CV == IS_CV && opline->extended_value) {
+		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
+
+		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		expr_ptr = *expr_ptr_ptr;
+		Z_ADDREF_P(expr_ptr);
+	} else if (IS_CV == IS_VAR && opline->extended_value) {
 		zval **expr_ptr_ptr = _get_zval_ptr_ptr_cv_BP_VAR_W(execute_data, opline->op1.var TSRMLS_CC);
 
 		if (IS_CV == IS_VAR && UNEXPECTED(expr_ptr_ptr == NULL)) {
 			zend_error_noreturn(E_ERROR, "Cannot create references to/from string offsets");
 		}
-		SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+
+		if (Z_REFCOUNT_PP(expr_ptr_ptr) > 2) {
+			SEPARATE_ZVAL_TO_MAKE_IS_REF(expr_ptr_ptr);
+		} else {
+			Z_SET_ISREF_PP(expr_ptr_ptr);
+		}
 		expr_ptr = *expr_ptr_ptr;
 		Z_ADDREF_P(expr_ptr);
 	} else {
@@ -41839,11 +42253,19 @@ static int ZEND_FASTCALL  ZEND_YIELD_SPEC_CV_CV_HANDLER(ZEND_OPCODE_HANDLER_ARGS
 
 				/* If a function call result is yielded and the function did
 				 * not return by reference we throw a notice. */
-				if (IS_CV == IS_VAR && !Z_ISREF_PP(value_ptr)
-				    && !(opline->extended_value == ZEND_RETURNS_FUNCTION
-				         && EX_T(opline->op1.var).var.fcall_returned_reference)
-				    && EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
-					zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+				if (IS_CV == IS_VAR) {
+					if (!Z_ISREF_PP(value_ptr)
+							&& !(opline->extended_value == ZEND_RETURNS_FUNCTION
+								&& EX_T(opline->op1.var).var.fcall_returned_reference)
+							&& EX_T(opline->op1.var).var.ptr_ptr == &EX_T(opline->op1.var).var.ptr) {
+						zend_error(E_NOTICE, "Only variable references should be yielded by reference");
+					}
+
+					if (Z_REFCOUNT_PP(value_ptr) > 2) {
+						SEPARATE_ZVAL_TO_MAKE_IS_REF(value_ptr);
+					} else {
+						Z_SET_ISREF_PP(value_ptr);
+					}
 
 					Z_ADDREF_PP(value_ptr);
 					generator->value = *value_ptr;
