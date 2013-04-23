@@ -183,6 +183,14 @@ static zend_always_inline zval *_get_zval_ptr_var(zend_uint var, const zend_exec
 {
 	zval *ptr = EX_T(var).var.ptr;
 
+	should_free->var = ptr;
+	return ptr;
+}
+
+static zend_always_inline zval *_get_zval_ptr_var_unlock(zend_uint var, const zend_execute_data *execute_data, zend_free_op *should_free TSRMLS_DC)
+{
+	zval *ptr = EX_T(var).var.ptr;
+
 	PZVAL_UNLOCK(ptr, should_free);
 	return ptr;
 }
@@ -358,7 +366,7 @@ static inline zval *_get_zval_ptr(int op_type, const znode_op *node, const zend_
 			return &EX_T(node->var).tmp_var;
 			break;
 		case IS_VAR:
-			return _get_zval_ptr_var(node->var, execute_data, should_free TSRMLS_CC);
+			return _get_zval_ptr_var_unlock(node->var, execute_data, should_free TSRMLS_CC);
 			break;
 		case IS_UNUSED:
 			should_free->var = 0;
@@ -374,6 +382,19 @@ static inline zval *_get_zval_ptr(int op_type, const znode_op *node, const zend_
 }
 
 static zend_always_inline zval **_get_zval_ptr_ptr_var(zend_uint var, const zend_execute_data *execute_data, zend_free_op *should_free TSRMLS_DC)
+{
+	zval** ptr_ptr = EX_T(var).var.ptr_ptr;
+
+	if (EXPECTED(ptr_ptr != NULL)) {
+		should_free->var = *ptr_ptr;
+	} else {
+		/* string offset */
+		should_free->var = EX_T(var).str_offset.str;
+	}
+	return ptr_ptr;
+}
+
+static zend_always_inline zval **_get_zval_ptr_ptr_var_unlock(zend_uint var, const zend_execute_data *execute_data, zend_free_op *should_free TSRMLS_DC)
 {
 	zval** ptr_ptr = EX_T(var).var.ptr_ptr;
 

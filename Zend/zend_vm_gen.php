@@ -125,6 +125,8 @@ $op1_get_zval_ptr = array(
 	"UNUSED" => "NULL",
 	"CV"     => "_get_zval_ptr_cv_\\1(execute_data, opline->op1.var TSRMLS_CC)",
 );
+$op1_get_zval_ptr_unlock = $op1_get_zval_ptr;
+$op1_get_zval_ptr_unlock["VAR"] = "_get_zval_ptr_var_unlock(opline->op1.var, execute_data, &free_op1 TSRMLS_CC)";
 
 $op2_get_zval_ptr = array(
 	"ANY"    => "get_zval_ptr(opline->op2_type, &opline->op2, execute_data, &free_op2, \\1)",
@@ -134,6 +136,8 @@ $op2_get_zval_ptr = array(
 	"UNUSED" => "NULL",
 	"CV"     => "_get_zval_ptr_cv_\\1(execute_data, opline->op2.var TSRMLS_CC)",
 );
+$op2_get_zval_ptr_unlock = $op2_get_zval_ptr;
+$op2_get_zval_ptr_unlock["VAR"] = "_get_zval_ptr_var_unlock(opline->op2.var, execute_data, &free_op2 TSRMLS_CC)";
 
 $op1_get_zval_ptr_ptr = array(
 	"ANY"    => "get_zval_ptr_ptr(opline->op1_type, &opline->op1, execute_data, &free_op1, \\1)",
@@ -143,6 +147,8 @@ $op1_get_zval_ptr_ptr = array(
 	"UNUSED" => "NULL",
 	"CV"     => "_get_zval_ptr_ptr_cv_\\1(execute_data, opline->op1.var TSRMLS_CC)",
 );
+$op1_get_zval_ptr_ptr_unlock = $op1_get_zval_ptr_ptr;
+$op1_get_zval_ptr_ptr_unlock["VAR"] = "_get_zval_ptr_ptr_var_unlock(opline->op1.var, execute_data, &free_op1 TSRMLS_CC)";
 
 $op2_get_zval_ptr_ptr = array(
 	"ANY"    => "get_zval_ptr_ptr(opline->op2_type, &opline->op2, execute_data, &free_op2, \\1)",
@@ -152,6 +158,8 @@ $op2_get_zval_ptr_ptr = array(
 	"UNUSED" => "NULL",
 	"CV"     => "_get_zval_ptr_ptr_cv_\\1(execute_data, opline->op2.var TSRMLS_CC)",
 );
+$op2_get_zval_ptr_ptr_unlock = $op2_get_zval_ptr_ptr;
+$op2_get_zval_ptr_ptr_unlock["VAR"] = "_get_zval_ptr_ptr_var_unlock(opline->op2.var, execute_data, &free_op2 TSRMLS_CC)";
 
 $op1_get_obj_zval_ptr = array(
 	"ANY"    => "get_obj_zval_ptr(opline->op1_type, &opline->op1, execute_data, &free_op1, \\1)",
@@ -161,6 +169,8 @@ $op1_get_obj_zval_ptr = array(
 	"UNUSED" => "_get_obj_zval_ptr_unused(TSRMLS_C)",
 	"CV"     => "_get_zval_ptr_cv_\\1(execute_data, opline->op1.var TSRMLS_CC)",
 );
+$op1_get_obj_zval_ptr_unlock = $op1_get_obj_zval_ptr;
+$op1_get_obj_zval_ptr_unlock["VAR"] = "_get_zval_ptr_var_unlock(opline->op1.var, execute_data, &free_op1 TSRMLS_CC)";
 
 $op2_get_obj_zval_ptr = array(
 	"ANY"    => "get_obj_zval_ptr(opline->op2_type, &opline->op2, execute_data, &free_op2, \\1)",
@@ -170,6 +180,8 @@ $op2_get_obj_zval_ptr = array(
 	"UNUSED" => "_get_obj_zval_ptr_unused(TSRMLS_C)",
 	"CV"     => "_get_zval_ptr_cv_\\1(execute_data, opline->op2.var TSRMLS_CC)",
 );
+$op2_get_obj_zval_ptr_unlock = $op2_get_obj_zval_ptr;
+$op2_get_obj_zval_ptr_unlock["VAR"] = "_get_zval_ptr_var_unlock(opline->op2.var, execute_data, &free_op2 TSRMLS_CC)";
 
 $op1_get_obj_zval_ptr_ptr = array(
 	"ANY"    => "get_obj_zval_ptr_ptr(opline->op1_type, &opline->op1, execute_data, &free_op1, \\1)",
@@ -179,6 +191,8 @@ $op1_get_obj_zval_ptr_ptr = array(
 	"UNUSED" => "_get_obj_zval_ptr_ptr_unused(TSRMLS_C)",
 	"CV"     => "_get_zval_ptr_ptr_cv_\\1(execute_data, opline->op1.var TSRMLS_CC)",
 );
+$op1_get_obj_zval_ptr_ptr_unlock = $op1_get_obj_zval_ptr_ptr;
+$op1_get_obj_zval_ptr_ptr_unlock["VAR"] = "_get_zval_ptr_ptr_var_unlock(opline->op1.var, execute_data, &free_op1 TSRMLS_CC)";
 
 $op2_get_obj_zval_ptr_ptr = array(
 	"ANY"    => "get_obj_zval_ptr_ptr(opline->op2_type, &opline->op2, execute_data, &free_op2, \\1)",
@@ -188,6 +202,8 @@ $op2_get_obj_zval_ptr_ptr = array(
 	"UNUSED" => "_get_obj_zval_ptr_ptr_unused(TSRMLS_C)",
 	"CV"     => "_get_zval_ptr_ptr_cv_\\1(execute_data, opline->op2.var TSRMLS_CC)",
 );
+$op2_get_obj_zval_ptr_ptr_unlock = $op2_get_obj_zval_ptr_ptr;
+$op2_get_obj_zval_ptr_ptr_unlock["VAR"] = "_get_zval_ptr_ptr_var_unlock(opline->op2.var, execute_data, &free_op2 TSRMLS_CC)";
 
 $op1_is_tmp_free = array(
 	"ANY"    => "IS_TMP_FREE(free_op1)",
@@ -210,56 +226,69 @@ $op2_is_tmp_free = array(
 $op1_free_op = array(
 	"ANY"    => "FREE_OP(free_op1)",
 	"TMP"    => "zval_dtor(free_op1.var)",
-	"VAR"    => "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}",
+	"VAR"    => "zval_ptr_dtor(&free_op1.var);",
 	"CONST"  => "",
 	"UNUSED" => "",
 	"CV"     => "",
 );
+$op1_free_op_unlock = $op1_free_op;
+$op1_free_op_unlock["VAR"] = "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}";
 
 $op2_free_op = array(
 	"ANY"    => "FREE_OP(free_op2)",
 	"TMP"    => "zval_dtor(free_op2.var)",
-	"VAR"    => "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}",
+	"VAR"    => "zval_ptr_dtor(&free_op2.var);",
 	"CONST"  => "",
 	"UNUSED" => "",
 	"CV"     => "",
 );
+$op2_free_op_unlock = $op2_free_op;
+$op2_free_op_unlock["VAR"] = "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}";
 
 $op1_free_op_if_var = array(
 	"ANY"    => "FREE_OP_IF_VAR(free_op1)",
 	"TMP"    => "",
-	"VAR"    => "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}",
+	"VAR"    => "zval_ptr_dtor(&free_op1.var)",
 	"CONST"  => "",
 	"UNUSED" => "",
 	"CV"     => "",
 );
+$op1_free_op_if_var_unlock = $op1_free_op_if_var;
+$op1_free_op_if_var_unlock["VAR"] = "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}";
 
 $op2_free_op_if_var = array(
 	"ANY"    => "FREE_OP_IF_VAR(free_op2)",
 	"TMP"    => "",
-	"VAR"    => "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}",
+	"VAR"    => "zval_ptr_dtor(&free_op2.var)",
 	"CONST"  => "",
 	"UNUSED" => "",
 	"CV"     => "",
 );
+$op2_free_op_if_var_unlock = $op2_free_op_if_var;
+$op2_free_op_if_var_unlock["VAR"] = "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}";
+
 
 $op1_free_op_var_ptr = array(
 	"ANY"    => "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}",
 	"TMP"    => "",
-	"VAR"    => "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}",
+	"VAR"    => "zval_ptr_dtor(&free_op1.var)",
 	"CONST"  => "",
 	"UNUSED" => "",
 	"CV"     => "",
 );
+$op1_free_op_var_ptr_unlock = $op1_free_op_var_ptr;
+$op1_free_op_var_ptr_unlock["VAR"] = "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}";
 
 $op2_free_op_var_ptr = array(
 	"ANY"    => "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}",
 	"TMP"    => "",
-	"VAR"    => "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}",
+	"VAR"    => "zval_ptr_dtor(&free_op2.var)",
 	"CONST"  => "",
 	"UNUSED" => "",
 	"CV"     => "",
 );
+$op2_free_op_var_ptr_unlock = $op2_free_op_var_ptr;
+$op2_free_op_var_ptr_unlock["VAR"] = "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}";
 
 $list    = array(); // list of opcode handlers and helpers in original order
 $opcodes = array(); // opcode handlers by code
@@ -306,12 +335,19 @@ function helper_name($name, $spec, $op1, $op2) {
 // Generates code for opcode handler or helper
 function gen_code($f, $spec, $kind, $export, $code, $op1, $op2, $name) {
 	global $op1_type, $op2_type, $op1_get_zval_ptr, $op2_get_zval_ptr,
+		$op1_get_zval_ptr_unlock, $op2_get_zval_ptr_unlock,
 		$op1_get_zval_ptr_ptr, $op2_get_zval_ptr_ptr,
+		$op1_get_zval_ptr_ptr_unlock, $op2_get_zval_ptr_ptr_unlock,
 		$op1_get_obj_zval_ptr, $op2_get_obj_zval_ptr,
+		$op1_get_obj_zval_ptr_unlock, $op2_get_obj_zval_ptr_unlock,
 		$op1_get_obj_zval_ptr_ptr, $op2_get_obj_zval_ptr_ptr,
+		$op1_get_obj_zval_ptr_ptr_unlock, $op2_get_obj_zval_ptr_ptr_unlock,
 		$op1_is_tmp_free, $op2_is_tmp_free, $op1_free, $op2_free,
-		$op1_free_op, $op2_free_op, $op1_free_op_if_var, $op2_free_op_if_var,
-		$op1_free_op_var_ptr, $op2_free_op_var_ptr, $prefix;
+		$op1_free_op, $op2_free_op, $op1_free_op_unlock, $op2_free_op_unlock,
+		$op1_free_op_if_var, $op2_free_op_if_var,
+		$op1_free_op_if_var_unlock, $op2_free_op_if_var_unlock,
+		$op1_free_op_var_ptr, $op2_free_op_var_ptr, 
+		$op1_free_op_var_ptr_unlock, $op2_free_op_var_ptr_unlock, $prefix;
 
 	// Specializing
 	$code = preg_replace(
@@ -320,20 +356,34 @@ function gen_code($f, $spec, $kind, $export, $code, $op1, $op2, $name) {
 			"/OP2_TYPE/",
 			"/OP1_FREE/",
 			"/OP2_FREE/",
+			"/GET_OP1_ZVAL_PTR\(([^)]*), UNLOCK\)/",
+			"/GET_OP2_ZVAL_PTR\(([^)]*), UNLOCK\)/",
 			"/GET_OP1_ZVAL_PTR\(([^)]*)\)/",
 			"/GET_OP2_ZVAL_PTR\(([^)]*)\)/",
+			"/GET_OP1_ZVAL_PTR_PTR\(([^)]*), UNLOCK\)/",
+			"/GET_OP2_ZVAL_PTR_PTR\(([^)]*), UNLOCK\)/",
 			"/GET_OP1_ZVAL_PTR_PTR\(([^)]*)\)/",
 			"/GET_OP2_ZVAL_PTR_PTR\(([^)]*)\)/",
+			"/GET_OP1_OBJ_ZVAL_PTR\(([^)]*), UNLOCK\)/",
+			"/GET_OP2_OBJ_ZVAL_PTR\(([^)]*), UNLOCK\)/",
 			"/GET_OP1_OBJ_ZVAL_PTR\(([^)]*)\)/",
 			"/GET_OP2_OBJ_ZVAL_PTR\(([^)]*)\)/",
+			"/GET_OP1_OBJ_ZVAL_PTR_PTR\(([^)]*), UNLOCK\)/",
+			"/GET_OP2_OBJ_ZVAL_PTR_PTR\(([^)]*), UNLOCK\)/",
 			"/GET_OP1_OBJ_ZVAL_PTR_PTR\(([^)]*)\)/",
 			"/GET_OP2_OBJ_ZVAL_PTR_PTR\(([^)]*)\)/",
 			"/IS_OP1_TMP_FREE\(\)/",
 			"/IS_OP2_TMP_FREE\(\)/",
+			"/FREE_OP1\(UNLOCK\)/",
+			"/FREE_OP2\(UNLOCK\)/",
 			"/FREE_OP1\(\)/",
 			"/FREE_OP2\(\)/",
+			"/FREE_OP1_IF_VAR\(UNLOCK\)/",
+			"/FREE_OP2_IF_VAR\(UNLOCK\)/",
 			"/FREE_OP1_IF_VAR\(\)/",
 			"/FREE_OP2_IF_VAR\(\)/",
+			"/FREE_OP1_VAR_PTR\(UNLOCK\)/",
+			"/FREE_OP2_VAR_PTR\(UNLOCK\)/",
 			"/FREE_OP1_VAR_PTR\(\)/",
 			"/FREE_OP2_VAR_PTR\(\)/",
 			"/^#ifdef\s+ZEND_VM_SPEC\s*\n/m",
@@ -352,20 +402,34 @@ function gen_code($f, $spec, $kind, $export, $code, $op1, $op2, $name) {
 			$op2_type[$op2],
 			$op1_free[$op1],
 			$op2_free[$op2],
+			$op1_get_zval_ptr_unlock[$op1],
+			$op2_get_zval_ptr_unlock[$op2],
 			$op1_get_zval_ptr[$op1],
 			$op2_get_zval_ptr[$op2],
+			$op1_get_zval_ptr_ptr_unlock[$op1],
+			$op2_get_zval_ptr_ptr_unlock[$op2],
 			$op1_get_zval_ptr_ptr[$op1],
 			$op2_get_zval_ptr_ptr[$op2],
+			$op1_get_obj_zval_ptr_unlock[$op1],
+			$op2_get_obj_zval_ptr_unlock[$op2],
 			$op1_get_obj_zval_ptr[$op1],
 			$op2_get_obj_zval_ptr[$op2],
+			$op1_get_obj_zval_ptr_ptr_unlock[$op1],
+			$op2_get_obj_zval_ptr_ptr_unlock[$op2],
 			$op1_get_obj_zval_ptr_ptr[$op1],
 			$op2_get_obj_zval_ptr_ptr[$op2],
 			$op1_is_tmp_free[$op1],
 			$op2_is_tmp_free[$op2],
+			$op1_free_op_unlock[$op1],
+			$op2_free_op_unlock[$op2],
 			$op1_free_op[$op1],
 			$op2_free_op[$op2],
+			$op1_free_op_if_var_unlock[$op1],
+			$op2_free_op_if_var_unlock[$op2],
 			$op1_free_op_if_var[$op1],
 			$op2_free_op_if_var[$op2],
+			$op1_free_op_var_ptr_unlock[$op1],
+			$op2_free_op_var_ptr_unlock[$op2],
 			$op1_free_op_var_ptr[$op1],
 			$op2_free_op_var_ptr[$op2],
 			($op1!="ANY"||$op2!="ANY")?"#if 1\n":"#if 0\n",
