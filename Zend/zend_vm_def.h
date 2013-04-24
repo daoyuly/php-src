@@ -619,7 +619,6 @@ ZEND_VM_HELPER_EX(zend_pre_incdec_property_helper, VAR|UNUSED|CV, CONST|TMP|VAR|
 	}
 
 	/* here we are sure we are dealing with an object */
-
 	if (IS_OP2_TMP_FREE()) {
 		MAKE_REAL_ZVAL_PTR(property);
 	}
@@ -720,7 +719,6 @@ ZEND_VM_HELPER_EX(zend_post_incdec_property_helper, VAR|UNUSED|CV, CONST|TMP|VAR
 	}
 
 	/* here we are sure we are dealing with an object */
-
 	if (IS_OP2_TMP_FREE()) {
 		MAKE_REAL_ZVAL_PTR(property);
 	}
@@ -1302,7 +1300,7 @@ ZEND_VM_HANDLER(96, ZEND_FETCH_DIM_UNSET, VAR|CV, CONST|TMP|VAR|CV)
 	zval **container;
 
 	SAVE_OPLINE();
-	container = GET_OP1_ZVAL_PTR_PTR(BP_VAR_UNSET, UNLOCK);
+	container = GET_OP1_ZVAL_PTR_PTR(BP_VAR_UNSET);
 
 	if (OP1_TYPE == IS_CV) {
 		if (container != &EG(uninitialized_zval_ptr)) {
@@ -1314,10 +1312,10 @@ ZEND_VM_HANDLER(96, ZEND_FETCH_DIM_UNSET, VAR|CV, CONST|TMP|VAR|CV)
 	}
 	zend_fetch_dimension_address(&EX_T(opline->result.var), container, GET_OP2_ZVAL_PTR(BP_VAR_R), OP2_TYPE, BP_VAR_UNSET TSRMLS_CC);
 	FREE_OP2();
-	if (OP1_TYPE == IS_VAR && OP1_FREE && READY_TO_DESTROY(free_op1.var)) {
+	if (OP1_TYPE == IS_VAR && READY_TO_DESTROY(free_op1.var)) {
 		EXTRACT_ZVAL_PTR(&EX_T(opline->result.var));
 	}
-	FREE_OP1_VAR_PTR(UNLOCK);
+	FREE_OP1_VAR_PTR();
 	if (UNEXPECTED(EX_T(opline->result.var).var.ptr_ptr == NULL)) {
 		zend_error_noreturn(E_ERROR, "Cannot unset string offsets");
 		ZEND_VM_NEXT_OPCODE();
@@ -1551,7 +1549,7 @@ ZEND_VM_HANDLER(97, ZEND_FETCH_OBJ_UNSET, VAR|UNUSED|CV, CONST|TMP|VAR|CV)
 	zval *property;
 
 	SAVE_OPLINE();
-	container = GET_OP1_OBJ_ZVAL_PTR_PTR(BP_VAR_UNSET, UNLOCK);
+	container = GET_OP1_OBJ_ZVAL_PTR_PTR(BP_VAR_UNSET);
 	property = GET_OP2_ZVAL_PTR(BP_VAR_R);
 
 	if (OP1_TYPE == IS_CV) {
@@ -1571,10 +1569,10 @@ ZEND_VM_HANDLER(97, ZEND_FETCH_OBJ_UNSET, VAR|UNUSED|CV, CONST|TMP|VAR|CV)
 	} else {
 		FREE_OP2();
 	}
-	if (OP1_TYPE == IS_VAR && OP1_FREE && READY_TO_DESTROY(free_op1.var)) {
+	if (OP1_TYPE == IS_VAR && READY_TO_DESTROY(free_op1.var)) {
 		EXTRACT_ZVAL_PTR(&EX_T(opline->result.var));
 	}
-	FREE_OP1_VAR_PTR(UNLOCK);
+	FREE_OP1_VAR_PTR();
 
 	PZVAL_UNLOCK(*EX_T(opline->result.var).var.ptr_ptr, &free_res);
 	if (EX_T(opline->result.var).var.ptr_ptr != &EG(uninitialized_zval_ptr)) {
@@ -2499,7 +2497,7 @@ ZEND_VM_HANDLER(112, ZEND_INIT_METHOD_CALL, TMP|VAR|UNUSED|CV, CONST|TMP|VAR|CV)
 	EX(call) = call;
 
 	FREE_OP2();
-	FREE_OP1_IF_VAR(UNLOCK);
+	FREE_OP1_IF_VAR();
 
 	CHECK_EXCEPTION();
 	ZEND_VM_NEXT_OPCODE();
@@ -2840,7 +2838,7 @@ ZEND_VM_HANDLER(62, ZEND_RETURN, CONST|TMP|VAR|CV, ANY)
 	zend_free_op free_op1;
 
 	SAVE_OPLINE();
-	retval_ptr = GET_OP1_ZVAL_PTR(BP_VAR_R);
+	retval_ptr = GET_OP1_ZVAL_PTR(BP_VAR_R, UNLOCK);
 
 	if (!EG(return_value_ptr_ptr)) {
 		if (OP1_TYPE == IS_TMP_VAR) {
@@ -2869,7 +2867,7 @@ ZEND_VM_HANDLER(62, ZEND_RETURN, CONST|TMP|VAR|CV, ANY)
 			Z_ADDREF_P(retval_ptr);
 		}
 	}
-	FREE_OP1_IF_VAR();
+	FREE_OP1_IF_VAR(UNLOCK);
 	ZEND_VM_DISPATCH_TO_HELPER(zend_leave_helper);
 }
 
