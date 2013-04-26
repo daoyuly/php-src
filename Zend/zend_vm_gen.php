@@ -232,7 +232,7 @@ $op1_free_op = array(
 	"CV"     => "",
 );
 $op1_free_op_unlock = $op1_free_op;
-$op1_free_op_unlock["VAR"] = "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}";
+$op1_free_op_unlock["VAR"] = "if (free_op1.var) {PZVAL_UNLOCK_FREE(free_op1.var);}";
 
 $op2_free_op = array(
 	"ANY"    => "FREE_OP(free_op2)",
@@ -243,7 +243,7 @@ $op2_free_op = array(
 	"CV"     => "",
 );
 $op2_free_op_unlock = $op2_free_op;
-$op2_free_op_unlock["VAR"] = "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}";
+$op2_free_op_unlock["VAR"] = "if (free_op2.var) {PZVAL_UNLOCK_FREE(free_op2.var);}";
 
 $op1_free_op_if_var = array(
 	"ANY"    => "FREE_OP_IF_VAR(free_op1)",
@@ -254,7 +254,7 @@ $op1_free_op_if_var = array(
 	"CV"     => "",
 );
 $op1_free_op_if_var_unlock = $op1_free_op_if_var;
-$op1_free_op_if_var_unlock["VAR"] = "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}";
+$op1_free_op_if_var_unlock["VAR"] = "if (free_op1.var) {PZVAL_UNLOCK_FREE(free_op1.var);}";
 
 $op2_free_op_if_var = array(
 	"ANY"    => "FREE_OP_IF_VAR(free_op2)",
@@ -265,7 +265,7 @@ $op2_free_op_if_var = array(
 	"CV"     => "",
 );
 $op2_free_op_if_var_unlock = $op2_free_op_if_var;
-$op2_free_op_if_var_unlock["VAR"] = "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}";
+$op2_free_op_if_var_unlock["VAR"] = "if (free_op2.var) {PZVAL_UNLOCK_FREE(free_op2.var);}";
 
 
 $op1_free_op_var_ptr = array(
@@ -277,7 +277,7 @@ $op1_free_op_var_ptr = array(
 	"CV"     => "",
 );
 $op1_free_op_var_ptr_unlock = $op1_free_op_var_ptr;
-$op1_free_op_var_ptr_unlock["VAR"] = "if (free_op1.var) {zval_ptr_dtor(&free_op1.var);}";
+$op1_free_op_var_ptr_unlock["VAR"] = "if (free_op1.var) {PZVAL_UNLOCK_FREE(free_op1.var);}";
 
 $op2_free_op_var_ptr = array(
 	"ANY"    => "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}",
@@ -288,7 +288,7 @@ $op2_free_op_var_ptr = array(
 	"CV"     => "",
 );
 $op2_free_op_var_ptr_unlock = $op2_free_op_var_ptr;
-$op2_free_op_var_ptr_unlock["VAR"] = "if (free_op2.var) {zval_ptr_dtor(&free_op2.var);}";
+$op2_free_op_var_ptr_unlock["VAR"] = "if (free_op2.var) {PZVAL_UNLOCK_FREE(free_op2.var);}";
 
 $list    = array(); // list of opcode handlers and helpers in original order
 $opcodes = array(); // opcode handlers by code

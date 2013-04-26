@@ -83,6 +83,21 @@ static zend_always_inline void zend_pzval_unlock_func(zval *z, zend_free_op *sho
 	}
 }
 
+static zend_always_inline void zend_pzval_unlock_func_ex(zval *z, zend_free_op *should_free TSRMLS_DC)
+{
+	if (!Z_DELREF_P(z)) {
+		Z_SET_REFCOUNT_P(z, 1);
+		Z_UNSET_ISREF_P(z);
+		should_free->var = z;
+	} else {
+		should_free->var = 0;
+		if (Z_ISREF_P(z) && Z_REFCOUNT_P(z) == 1) {
+			Z_UNSET_ISREF_P(z);
+		}
+		GC_ZVAL_CHECK_POSSIBLE_ROOT(z);
+	}
+}
+
 static zend_always_inline void zend_pzval_unlock_free_func(zval *z TSRMLS_DC)
 {
 	if (!Z_DELREF_P(z)) {
@@ -96,7 +111,7 @@ static zend_always_inline void zend_pzval_unlock_free_func(zval *z TSRMLS_DC)
 #undef zval_ptr_dtor
 #define zval_ptr_dtor(pzv) i_zval_ptr_dtor(*(pzv)  ZEND_FILE_LINE_CC)
 
-#define PZVAL_UNLOCK(z, f) zend_pzval_unlock_func(z, f, 1 TSRMLS_CC)
+#define PZVAL_UNLOCK(z, f) zend_pzval_unlock_func_ex(z, f TSRMLS_CC)
 #define PZVAL_UNLOCK_EX(z, f, u) zend_pzval_unlock_func(z, f, u TSRMLS_CC)
 #define PZVAL_UNLOCK_FREE(z) zend_pzval_unlock_free_func(z TSRMLS_CC)
 #define PZVAL_LOCK(z) Z_ADDREF_P((z))
@@ -125,18 +140,18 @@ static zend_always_inline void zend_pzval_unlock_free_func(zval *z TSRMLS_DC)
 		if ((zend_uintptr_t)should_free.var & 1L) { \
 			zval_dtor((zval*)((zend_uintptr_t)should_free.var & ~1L)); \
 		} else { \
-			zval_ptr_dtor(&should_free.var); \
+			PZVAL_UNLOCK_FREE(should_free.var); \
 		} \
 	}
 
 #define FREE_OP_IF_VAR(should_free) \
 	if (should_free.var != NULL && (((zend_uintptr_t)should_free.var & 1L) == 0)) { \
-		zval_ptr_dtor(&should_free.var); \
+		PZVAL_UNLOCK_FREE(should_free.var); \
 	}
 
 #define FREE_OP_VAR_PTR(should_free) \
 	if (should_free.var) { \
-		zval_ptr_dtor(&should_free.var); \
+		PZVAL_UNLOCK_FREE(should_free.var); \
 	}
 
 #define TMP_FREE(z) (zval*)(((zend_uintptr_t)(z)) | 1L)
