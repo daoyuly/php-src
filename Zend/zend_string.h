@@ -36,6 +36,7 @@ void zend_interned_strings_dtor(TSRMLS_D);
 END_EXTERN_C()
 
 #define IS_INTERNED(s)					(GC_FLAGS(s) & IS_STR_INTERNED)
+#define IS_NUMERIC(s)					(GC_FLAGS(s) & IS_STR_NUMERIC)
 
 #define STR_HASH_VAL(s)					zend_str_hash_val(s)
 #define STR_FORGET_HASH_VAL(s)			zend_str_forget_hash_val(s)
@@ -59,9 +60,11 @@ END_EXTERN_C()
 #define STR_ALLOCA_ALLOC(str, _len, use_heap) do { \
 	(str) = do_alloca(_STR_HEADER_SIZE + (_len) + 1, (use_heap)); \
 	GC_REFCOUNT(str) = 1; \
+	GC_FLAGS(str) = 0; \
 	(str)->h = 0; \
 	(str)->len = (_len); \
 } while (0)
+
 #define STR_ALLOCA_INIT(str, s, len, use_heap) do { \
 	STR_ALLOCA_ALLOC(str, len, use_heap); \
 	memcpy((str)->val, (s), (len)); \
@@ -81,6 +84,7 @@ static zend_always_inline zend_ulong zend_str_hash_val(zend_string *s)
 static zend_always_inline void zend_str_forget_hash_val(zend_string *s)
 {
 	s->h = 0;
+	GC_FLAGS(s) &= ~IS_STR_NUMERIC;
 }
 
 static zend_always_inline zend_uint zend_str_refcount(zend_string *s)
@@ -165,7 +169,16 @@ static zend_always_inline zend_string *zend_str_dup(zend_string *s, int persiste
 	if (IS_INTERNED(s)) {
 		return s;
 	} else {
-		return STR_INIT(s->val, s->len, persistent);
+		zend_string *ret;
+
+		ret = pemalloc(_STR_HEADER_SIZE + s->len + 1, persistent);
+		memcpy(ret, s, _STR_HEADER_SIZE + s->len + 1);
+
+		GC_REFCOUNT(ret) = 1;
+		GC_FLAGS(ret) = (persistent ? IS_STR_PERSISTENT : 0) | (GC_FLAGS(s) & ~(IS_STR_PERSISTENT|IS_STR_PERMANENT));
+		GC_INFO(ret) = 0;
+
+		return ret;
 	}
 }
 

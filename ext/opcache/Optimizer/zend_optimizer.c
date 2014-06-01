@@ -299,7 +299,7 @@ check_numeric:
 					ulong index;
 					int numeric = 0;
 
-					ZEND_HANDLE_NUMERIC_EX(Z_STRVAL_P(val), Z_STRLEN_P(val)+1, index, numeric = 1);
+					ZEND_HANDLE_NUMERIC_STR_EX(Z_STR_P(val), index, numeric = 1);
 					if (numeric) {
 						zval_dtor(val);
 						ZVAL_LONG(val, index);

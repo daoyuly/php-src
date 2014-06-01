@@ -188,6 +188,8 @@ static zend_always_inline Bucket *zend_hash_find_bucket(const HashTable *ht, zen
 	uint idx;
 	Bucket *p;
 
+	ZEND_ASSERT(!IS_NUMERIC(key));
+
 	h = STR_HASH_VAL(key);
 	nIndex = h & ht->nTableMask;
 	idx = ht->arHash[nIndex];
@@ -254,6 +256,7 @@ static zend_always_inline zval *_zend_hash_add_or_update_i(HashTable *ht, zend_s
 	TSRMLS_FETCH();
 #endif
 
+	ZEND_ASSERT(!IS_NUMERIC(key));
 	IS_CONSISTENT(ht);
 
 	CHECK_INIT(ht, 0);
@@ -673,6 +676,7 @@ ZEND_API int zend_hash_del(HashTable *ht, zend_string *key)
 	TSRMLS_FETCH();
 #endif
 
+	ZEND_ASSERT(!IS_NUMERIC(key));
 	IS_CONSISTENT(ht);
 
 	if (ht->u.flags & HASH_FLAG_PACKED) {
@@ -712,6 +716,7 @@ ZEND_API int zend_hash_del_ind(HashTable *ht, zend_string *key)
 	TSRMLS_FETCH();
 #endif
 
+	ZEND_ASSERT(!IS_NUMERIC(key));
 	IS_CONSISTENT(ht);
 
 	if (ht->u.flags & HASH_FLAG_PACKED) {
@@ -1366,6 +1371,7 @@ ZEND_API zval *zend_hash_find(const HashTable *ht, zend_string *key)
 {
 	Bucket *p;
 
+	ZEND_ASSERT(!IS_NUMERIC(key));
 	IS_CONSISTENT(ht);
 
 	if (ht->u.flags & HASH_FLAG_PACKED) {
@@ -1396,6 +1402,7 @@ ZEND_API int zend_hash_exists(const HashTable *ht, zend_string *key)
 {
 	Bucket *p;
 
+	ZEND_ASSERT(!IS_NUMERIC(key));
 	IS_CONSISTENT(ht);
 
 	if (ht->u.flags & HASH_FLAG_PACKED) {

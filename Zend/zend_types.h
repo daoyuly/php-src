@@ -308,10 +308,11 @@ static inline zend_uchar zval_get_type(const zval* pz) {
 /* string flags (zval.value->gc.u.flags) */
 #define IS_STR_PERSISTENT			(1<<0) /* allocated using malloc   */
 #define IS_STR_INTERNED				(1<<1) /* interned string          */
-#define IS_STR_PERMANENT        	(1<<2) /* relives request boundary */
+#define IS_STR_NUMERIC				(1<<2) /* is numeric string		   */
+#define IS_STR_PERMANENT        	(1<<3) /* relives request boundary */
 
-#define IS_STR_CONSTANT             (1<<3) /* constant index */
-#define IS_STR_CONSTANT_UNQUALIFIED (1<<4) /* the same as IS_CONSTANT_UNQUALIFIED */
+#define IS_STR_CONSTANT             (1<<4) /* constant index */
+#define IS_STR_CONSTANT_UNQUALIFIED (1<<5) /* the same as IS_CONSTANT_UNQUALIFIED */
 
 /* object flags (zval.value->gc.u.flags) */
 #define IS_OBJ_APPLY_COUNT			0x07

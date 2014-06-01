@@ -235,9 +235,8 @@ END_EXTERN_C()
 #define ZEND_INIT_SYMTABLE_EX(ht, n, persistent)			\
 	zend_hash_init(ht, n, NULL, ZVAL_PTR_DTOR, persistent)
 
-#define ZEND_HANDLE_NUMERIC_EX(key, length, idx, func) do {					\
+#define ZEND_HANDLE_NUMERIC_INTERNAL(key, length, idx, func)				\
 	register const char *tmp = key;											\
-																			\
 	if (*tmp == '-') {														\
 		tmp++;																\
 	}																		\
@@ -261,7 +260,7 @@ END_EXTERN_C()
 				if (idx-1 > LONG_MAX) { /* overflow */						\
 					break;													\
 				}															\
-				idx = 0 - idx;               									\
+				idx = 0 - idx;               								\
 			} else if (idx > LONG_MAX) { /* overflow */						\
 				break;														\
 			}																\
@@ -270,10 +269,33 @@ END_EXTERN_C()
 	}																		\
 } while (0)
 
-#define ZEND_HANDLE_NUMERIC(key, length, func) do {							\
+#define ZEND_HANDLE_NUMERIC_EX(key, len, idx, func) do {					\
+	ZEND_HANDLE_NUMERIC_INTERNAL(key, len, idx, func)
+
+#define ZEND_HANDLE_NUMERIC_STR_EX(str, idx, func) do {						\
+	if ((GC_FLAGS(str) & IS_STR_NUMERIC)) {									\
+		idx = str->h;														\
+		func;																\
+		break;																\
+	}																		\
+	ZEND_HANDLE_NUMERIC_INTERNAL(str->val, str->len+1, idx, goto _numeric); \
+	if (0) {																\
+_numeric:																	\
+		str->h = idx;														\
+		GC_FLAGS(str) |= IS_STR_NUMERIC;									\
+		func;																\
+	}
+
+#define ZEND_HANDLE_NUMERIC(key, len, func) do {							\
 	ulong idx;																\
 																			\
-	ZEND_HANDLE_NUMERIC_EX(key, length, idx, return func);					\
+	ZEND_HANDLE_NUMERIC_EX(key, len, idx, return func);						\
+} while (0)
+
+#define ZEND_HANDLE_NUMERIC_STR(key, func) do {								\
+	ulong idx;																\
+																			\
+	ZEND_HANDLE_NUMERIC_STR_EX(key, idx, return func);						\
 } while (0)
 
 
@@ -307,49 +329,49 @@ static inline zval *zend_hash_str_find_ind(const HashTable *ht, const char *str,
 
 static inline zval *zend_symtable_update(HashTable *ht, zend_string *key, zval *pData)
 {
-	ZEND_HANDLE_NUMERIC(key->val, key->len+1, zend_hash_index_update(ht, idx, pData));
+	ZEND_HANDLE_NUMERIC_STR(key, zend_hash_index_update(ht, idx, pData));
 	return zend_hash_update(ht, key, pData);
 }
 
 
 static inline zval *zend_symtable_update_ind(HashTable *ht, zend_string *key, zval *pData)
 {
-	ZEND_HANDLE_NUMERIC(key->val, key->len+1, zend_hash_index_update(ht, idx, pData));
+	ZEND_HANDLE_NUMERIC_STR(key, zend_hash_index_update(ht, idx, pData));
 	return zend_hash_update_ind(ht, key, pData);
 }
 
 
 static inline int zend_symtable_del(HashTable *ht, zend_string *key)
 {
-	ZEND_HANDLE_NUMERIC(key->val, key->len+1, zend_hash_index_del(ht, idx));
+	ZEND_HANDLE_NUMERIC_STR(key, zend_hash_index_del(ht, idx));
 	return zend_hash_del(ht, key);
 }
 
 
 static inline int zend_symtable_del_ind(HashTable *ht, zend_string *key)
 {
-	ZEND_HANDLE_NUMERIC(key->val, key->len+1, zend_hash_index_del(ht, idx));
+	ZEND_HANDLE_NUMERIC_STR(key, zend_hash_index_del(ht, idx));
 	return zend_hash_del_ind(ht, key);
 }
 
 
 static inline zval *zend_symtable_find(const HashTable *ht, zend_string *key)
 {
-	ZEND_HANDLE_NUMERIC(key->val, key->len+1, zend_hash_index_find(ht, idx));
+	ZEND_HANDLE_NUMERIC_STR(key, zend_hash_index_find(ht, idx));
 	return zend_hash_find(ht, key);
 }
 
 
 static inline zval *zend_symtable_find_ind(const HashTable *ht, zend_string *key)
 {
-	ZEND_HANDLE_NUMERIC(key->val, key->len+1, zend_hash_index_find(ht, idx));
+	ZEND_HANDLE_NUMERIC_STR(key, zend_hash_index_find(ht, idx));
 	return zend_hash_find_ind(ht, key);
 }
 
 
 static inline int zend_symtable_exists(HashTable *ht, zend_string *key)
 {
-	ZEND_HANDLE_NUMERIC(key->val, key->len+1, zend_hash_index_exists(ht, idx));
+	ZEND_HANDLE_NUMERIC_STR(key, zend_hash_index_exists(ht, idx));
 	return zend_hash_exists(ht, key);
 }
 
