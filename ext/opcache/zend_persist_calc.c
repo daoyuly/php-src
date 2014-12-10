@@ -68,10 +68,10 @@ static void zend_hash_persist_calc(HashTable *ht, void (*pPersistElement)(zval *
 		if (Z_TYPE(p->val) == IS_UNDEF) continue;
 
 		/* persist bucket and key */
-		if (p->key) {
-			zend_uchar flags = GC_FLAGS(p->key) & ~ (IS_STR_PERSISTENT | IS_STR_INTERNED | IS_STR_PERMANENT);
-			ADD_INTERNED_STRING(p->key, 1);
-			GC_FLAGS(p->key) |= flags;
+		if (Z_IS_STR_KEY(p->val)) {
+			zend_uchar flags = GC_FLAGS(p->key.s) & ~ (IS_STR_PERSISTENT | IS_STR_INTERNED | IS_STR_PERMANENT);
+			ADD_INTERNED_STRING(p->key.s, 1);
+			GC_FLAGS(p->key.s) |= flags;
 		}
 
 		pPersistElement(&p->val TSRMLS_CC);

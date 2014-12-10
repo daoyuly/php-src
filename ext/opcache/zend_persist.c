@@ -97,8 +97,8 @@ static void zend_hash_persist(HashTable *ht, zend_persist_func_t pPersistElement
 		if (Z_TYPE(p->val) == IS_UNDEF) continue;
 
 		/* persist bucket and key */
-		if (p->key) {
-			zend_accel_store_interned_string(p->key);
+		if (Z_IS_STR_KEY(p->val)) {
+			zend_accel_store_interned_string(p->key.s);
 		}
 
 		/* persist the data itself */
@@ -133,8 +133,8 @@ static void zend_hash_persist_immutable(HashTable *ht TSRMLS_DC)
 		if (Z_TYPE(p->val) == IS_UNDEF) continue;
 
 		/* persist bucket and key */
-		if (p->key) {
-			zend_accel_memdup_interned_string(p->key);
+		if (Z_IS_STR_KEY(p->val)) {
+			zend_accel_memdup_interned_string(p->key.s);
 		}
 
 		/* persist the data itself */

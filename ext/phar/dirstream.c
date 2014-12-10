@@ -160,7 +160,8 @@ static int phar_compare_dir_name(const void *a, const void *b TSRMLS_DC)  /* {{{
 
 	f = (Bucket *) a;
 	s = (Bucket *) b;
-	result = zend_binary_strcmp(f->key->val, f->key->len, s->key->val, s->key->len);
+
+	result = zend_binary_strcmp(f->key.s->val, f->key.s->len, s->key.s->val, s->key.s->len);
 
 	if (result < 0) {
 		return -1;

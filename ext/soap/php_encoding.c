@@ -2193,9 +2193,8 @@ static inline int array_num_elements(HashTable* ht)
 {
 	if (ht->nNumUsed &&
 	    Z_TYPE(ht->arData[ht->nNumUsed-1].val) != IS_UNUSED &&
-	    ht->arData[ht->nNumUsed-1].key == NULL) {
-
-	    return ht->arData[ht->nNumUsed-1].h - 1;
+	    Z_IS_NUM_KEY(ht->arData[ht->nNumUsed-1].val)) {
+	    return ht->arData[ht->nNumUsed-1].key.h - 1;
 	}
 	return 0;
 }

@@ -531,7 +531,7 @@ int zend_accel_script_optimize(zend_persistent_script *script TSRMLS_DC)
 				zend_accel_optimize(op_array, &ctx TSRMLS_CC);
 			} else if (op_array->type == ZEND_USER_FUNCTION) {
 				zend_op_array *orig_op_array;
-				if ((orig_op_array = zend_hash_find_ptr(&op_array->scope->function_table, q->key)) != NULL) {
+				if ((orig_op_array = zend_hash_find_ptr(&op_array->scope->function_table, q->key.s)) != NULL) {
 					HashTable *ht = op_array->static_variables;
 					*op_array = *orig_op_array;
 					op_array->static_variables = ht;

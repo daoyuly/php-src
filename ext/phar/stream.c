@@ -899,7 +899,8 @@ static int phar_wrapper_rename(php_stream_wrapper *wrapper, const char *url_from
 		uint to_len = strlen(resource_to->path+1);
 
 		ZEND_HASH_FOREACH_BUCKET(&phar->manifest, b) {
-			str_key = b->key;
+			ZEND_ASSERT(Z_IS_STR_KEY(b->val));
+			str_key = b->key.s;
 			entry = Z_PTR(b->val);
 			if (!entry->is_deleted &&
 				str_key->len > from_len &&
@@ -919,14 +920,15 @@ static int phar_wrapper_rename(php_stream_wrapper *wrapper, const char *url_from
 				entry->filename_len = new_str_key->len;
 
 				zend_string_release(str_key);
-				b->h = zend_string_hash_val(new_str_key);
-				b->key = new_str_key;
+				zend_string_hash_val(new_str_key);
+				b->key.s = new_str_key;
 			}
 		} ZEND_HASH_FOREACH_END();
 		zend_hash_rehash(&phar->manifest);
 
 		ZEND_HASH_FOREACH_BUCKET(&phar->virtual_dirs, b) {
-			str_key = b->key;
+			ZEND_ASSERT(Z_IS_STR_KEY(b->val));
+			str_key = b->key.s;
 			if (str_key->len >= from_len &&
 				memcmp(str_key->val, resource_from->path+1, from_len) == 0 &&
 				(str_key->len == from_len || IS_SLASH(str_key->val[from_len]))) {
@@ -937,14 +939,15 @@ static int phar_wrapper_rename(php_stream_wrapper *wrapper, const char *url_from
 				new_str_key->val[new_str_key->len] = 0;
 
 				zend_string_release(str_key);
-				b->h = zend_string_hash_val(new_str_key);
-				b->key = new_str_key;
+				zend_string_hash_val(new_str_key);
+				b->key.s = new_str_key;
 			}
 		} ZEND_HASH_FOREACH_END();
 		zend_hash_rehash(&phar->virtual_dirs);
 
 		ZEND_HASH_FOREACH_BUCKET(&phar->mounted_dirs, b) {
-			str_key = b->key;
+			ZEND_ASSERT(Z_IS_STR_KEY(b->val));
+			str_key = b->key.s;
 			if (str_key->len >= from_len &&
 				memcmp(str_key->val, resource_from->path+1, from_len) == 0 &&
 				(str_key->len == from_len || IS_SLASH(str_key->val[from_len]))) {
@@ -955,8 +958,8 @@ static int phar_wrapper_rename(php_stream_wrapper *wrapper, const char *url_from
 				new_str_key->val[new_str_key->len] = 0;
 
 				zend_string_release(str_key);
-				b->h = zend_string_hash_val(new_str_key);
-				b->key = new_str_key;
+				zend_string_hash_val(new_str_key);
+				b->key.s = new_str_key;
 			}
 		} ZEND_HASH_FOREACH_END();
 		zend_hash_rehash(&phar->mounted_dirs);

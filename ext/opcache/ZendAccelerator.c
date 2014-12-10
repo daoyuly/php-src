@@ -272,11 +272,11 @@ static void accel_interned_strings_restore_state(TSRMLS_D)
     while (idx > 0) {
     	idx--;
 		p = ZCSG(interned_strings).arData + idx;
-		if ((char*)p->key < ZCSG(interned_strings_top)) break;
+		if ((char*)p->key.s < ZCSG(interned_strings_top)) break;
 		ZCSG(interned_strings).nNumUsed--;
 		ZCSG(interned_strings).nNumOfElements--;
 
-		nIndex = p->h & ZCSG(interned_strings).nTableMask;
+		nIndex = p->key.s->h & ZCSG(interned_strings).nTableMask;
 		if (ZCSG(interned_strings).arHash[nIndex] == idx) {
 			ZCSG(interned_strings).arHash[nIndex] = Z_NEXT(p->val);
 		} else {
@@ -284,7 +284,7 @@ static void accel_interned_strings_restore_state(TSRMLS_D)
 			while (Z_NEXT(ZCSG(interned_strings).arData[prev].val) != idx) {
 				prev = Z_NEXT(ZCSG(interned_strings).arData[prev].val);
  			}
-			Z_NEXT(ZCSG(interned_strings).arData[prev].val) = Z_NEXT(p->val);
+			ZVAL_NEXT(ZCSG(interned_strings).arData[prev].val, Z_NEXT(p->val));
  		}
 	}
 }
@@ -316,11 +316,9 @@ zend_string *accel_new_interned_string(zend_string *str TSRMLS_DC)
 	idx = ZCSG(interned_strings).arHash[nIndex];
 	while (idx != INVALID_IDX) {
 		p = ZCSG(interned_strings).arData + idx;
-		if ((p->h == h) && (p->key->len == str->len)) {
-			if (!memcmp(p->key->val, str->val, str->len)) {
-				zend_string_release(str);
-				return p->key;
-			}
+		if (zend_string_equals(p->key.s, str)) {
+			zend_string_release(str);
+			return p->key.s;
 		}
 		idx = Z_NEXT(p->val);
 	}
@@ -337,25 +335,24 @@ zend_string *accel_new_interned_string(zend_string *str TSRMLS_DC)
 	idx = ZCSG(interned_strings).nNumUsed++;
 	ZCSG(interned_strings).nNumOfElements++;
 	p = ZCSG(interned_strings).arData + idx;
-	p->key = (zend_string*) ZCSG(interned_strings_top);
+	p->key.s = (zend_string*) ZCSG(interned_strings_top);
 	ZCSG(interned_strings_top) += ZEND_MM_ALIGNED_SIZE(_STR_HEADER_SIZE + str->len + 1);
-	p->h = h;
-	GC_REFCOUNT(p->key) = 1;
+	GC_REFCOUNT(p->key.s) = 1;
 #if 1
 	/* optimized single assignment */
-	GC_TYPE_INFO(p->key) = IS_STRING | ((IS_STR_INTERNED | IS_STR_PERMANENT) << 8);
+	GC_TYPE_INFO(p->key.s) = IS_STRING | ((IS_STR_INTERNED | IS_STR_PERMANENT) << 8);
 #else
-	GC_TYPE(p->key) = IS_STRING;
-	GC_FLAGS(p->key) = IS_STR_INTERNED | IS_STR_PERMANENT;
+	GC_TYPE(p->key.s) = IS_STRING;
+	GC_FLAGS(p->key.s) = IS_STR_INTERNED | IS_STR_PERMANENT;
 #endif
-	p->key->h = str->h;
-	p->key->len = str->len;
-	memcpy(p->key->val, str->val, str->len);
-	ZVAL_STR(&p->val, p->key);
-	Z_NEXT(p->val) = ZCSG(interned_strings).arHash[nIndex];
+	p->key.s->h = str->h;
+	p->key.s->len = str->len;
+	memcpy(p->key.s->val, str->val, str->len);
+	ZVAL_STR(&p->val, p->key.s);
+	ZVAL_STR_KEY_NEXT(p->val, ZCSG(interned_strings).arHash[nIndex]);
 	ZCSG(interned_strings).arHash[nIndex] = idx;
 	zend_string_release(str);
-	return p->key;
+	return p->key.s;
 #else
 	return str;
 #endif
@@ -381,8 +378,8 @@ static void accel_use_shm_interned_strings(TSRMLS_D)
 	for (idx = 0; idx < CG(function_table)->nNumUsed; idx++) {		
 		p = CG(function_table)->arData + idx;
 		if (Z_TYPE(p->val) == IS_UNDEF) continue;
-		if (p->key) {
-			p->key = accel_new_interned_string(p->key TSRMLS_CC);
+		if (Z_IS_STR_KEY(p->val)) {
+			p->key.s = accel_new_interned_string(p->key.s TSRMLS_CC);
 		}
 		if (Z_FUNC(p->val)->common.function_name) {
 			Z_FUNC(p->val)->common.function_name = accel_new_interned_string(Z_FUNC(p->val)->common.function_name TSRMLS_CC);
@@ -397,8 +394,8 @@ static void accel_use_shm_interned_strings(TSRMLS_D)
 		if (Z_TYPE(p->val) == IS_UNDEF) continue;
 		ce = (zend_class_entry*)Z_PTR(p->val);
 
-		if (p->key) {
-			p->key = accel_new_interned_string(p->key TSRMLS_CC);
+		if (Z_IS_STR_KEY(p->val)) {
+			p->key.s = accel_new_interned_string(p->key.s TSRMLS_CC);
 		}
 
 		if (ce->name) {
@@ -413,8 +410,8 @@ static void accel_use_shm_interned_strings(TSRMLS_D)
 			
 			info = (zend_property_info*)Z_PTR(q->val);
 
-			if (q->key) {
-				q->key = accel_new_interned_string(q->key TSRMLS_CC);
+			if (Z_IS_STR_KEY(q->val)) {
+				q->key.s = accel_new_interned_string(q->key.s TSRMLS_CC);
 			}
 
 			if (info->name) {
@@ -425,8 +422,8 @@ static void accel_use_shm_interned_strings(TSRMLS_D)
 		for (j = 0; j < ce->function_table.nNumUsed; j++) {
 			q = ce->function_table.arData + j;
 			if (Z_TYPE(q->val) == IS_UNDEF) continue;
-			if (q->key) {
-				q->key = accel_new_interned_string(q->key TSRMLS_CC);
+			if (Z_IS_STR_KEY(q->val)) {
+				q->key.s = accel_new_interned_string(q->key.s TSRMLS_CC);
 			}
 			if (Z_FUNC(q->val)->common.function_name) {
 				Z_FUNC(q->val)->common.function_name = accel_new_interned_string(Z_FUNC(q->val)->common.function_name TSRMLS_CC);
@@ -436,8 +433,8 @@ static void accel_use_shm_interned_strings(TSRMLS_D)
 		for (j = 0; j < ce->constants_table.nNumUsed; j++) {
 			q = ce->constants_table.arData + j;
 			if (!Z_TYPE(q->val) == IS_UNDEF) continue;
-			if (q->key) {
-				q->key = accel_new_interned_string(q->key TSRMLS_CC);
+			if (Z_IS_STR_KEY(q->val)) {
+				q->key.s = accel_new_interned_string(q->key.s TSRMLS_CC);
 			}
 		}
 	}
@@ -446,8 +443,8 @@ static void accel_use_shm_interned_strings(TSRMLS_D)
 	for (idx = 0; idx < EG(zend_constants)->nNumUsed; idx++) {		
 		p = EG(zend_constants)->arData + idx;
 		if (!Z_TYPE(p->val) == IS_UNDEF) continue;
-		if (p->key) {
-			p->key = accel_new_interned_string(p->key TSRMLS_CC);
+		if (Z_IS_STR_KEY(p->val)) {
+			p->key.s = accel_new_interned_string(p->key.s TSRMLS_CC);
 		}
 	}
 
@@ -461,8 +458,8 @@ static void accel_use_shm_interned_strings(TSRMLS_D)
 		auto_global = (zend_auto_global*)Z_PTR(p->val);;
 
 		auto_global->name = accel_new_interned_string(auto_global->name TSRMLS_CC);
-		if (p->key) {
-			p->key = accel_new_interned_string(p->key TSRMLS_CC);
+		if (Z_IS_STR_KEY(p->val)) {
+			p->key.s = accel_new_interned_string(p->key.s TSRMLS_CC);
 		}
 	}
 }
@@ -1978,7 +1975,7 @@ static int accel_clean_non_persistent_function(zval *zv TSRMLS_DC)
 
 static inline void zend_accel_fast_del_bucket(HashTable *ht, uint32_t idx, Bucket *p)
 {
-	uint32_t nIndex = p->h & ht->nTableMask;
+	uint32_t nIndex = BUCKET_HASH_VAL(p) & ht->nTableMask;
 	uint32_t i = ht->arHash[nIndex];
 
 	ht->nNumUsed--;
@@ -1989,9 +1986,9 @@ static inline void zend_accel_fast_del_bucket(HashTable *ht, uint32_t idx, Bucke
 			i = Z_NEXT(prev->val);
 			prev = ht->arData + i;
 		}
-		Z_NEXT(prev->val) = Z_NEXT(p->val);
+		ZVAL_NEXT(prev->val, Z_NEXT(p->val));
  	} else {
-		ht->arHash[p->h & ht->nTableMask] = Z_NEXT(p->val);
+		ht->arHash[BUCKET_HASH_VAL(p) & ht->nTableMask] = Z_NEXT(p->val);
 	}
 }
 
@@ -2181,6 +2178,7 @@ static int zend_accel_init_shm(TSRMLS_D)
 # ifndef ZTS
 	zend_hash_init(&ZCSG(interned_strings), (ZCG(accel_directives).interned_strings_buffer * 1024 * 1024) / (sizeof(Bucket) + sizeof(Bucket*) + 8 /* average string length */), NULL, NULL, 1);
 	if (ZCG(accel_directives).interned_strings_buffer) {
+		uint32_t i;
 		ZCSG(interned_strings).nTableMask = ZCSG(interned_strings).nTableSize - 1;
 		ZCSG(interned_strings).arData = zend_shared_alloc(ZCSG(interned_strings).nTableSize * sizeof(Bucket));
 		ZCSG(interned_strings).arHash = (uint32_t*)zend_shared_alloc(ZCSG(interned_strings).nTableSize * sizeof(uint32_t));
@@ -2189,7 +2187,9 @@ static int zend_accel_init_shm(TSRMLS_D)
 			zend_accel_error(ACCEL_LOG_FATAL, ACCELERATOR_PRODUCT_NAME " cannot allocate buffer for interned strings");
 			return FAILURE;
 		}
-		memset(ZCSG(interned_strings).arHash, INVALID_IDX, ZCSG(interned_strings).nTableSize * sizeof(uint32_t));
+		for (i = 0; i < ZCSG(interned_strings).nTableSize; i++) {
+			ZCSG(interned_strings).arHash[i] = INVALID_IDX;
+		}
 		ZCSG(interned_strings_end)   = ZCSG(interned_strings_start) + (ZCG(accel_directives).interned_strings_buffer * 1024 * 1024);
 		ZCSG(interned_strings_top)   = ZCSG(interned_strings_start);
 
