@@ -202,7 +202,7 @@ static int ini_key_compare(const void *a, const void *b) /* {{{ */
 
 ZEND_API void zend_ini_sort_entries(void) /* {{{ */
 {
-	zend_hash_sort(EG(ini_directives), zend_qsort, ini_key_compare, 0);
+	zend_hash_sort(EG(ini_directives), ini_key_compare, 0);
 }
 /* }}} */
 

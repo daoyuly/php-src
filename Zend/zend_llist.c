@@ -33,7 +33,6 @@ ZEND_API void zend_llist_init(zend_llist *l, size_t size, llist_dtor_func_t dtor
 	l->persistent = persistent;
 }
 
-
 ZEND_API void zend_llist_add_element(zend_llist *l, void *element)
 {
 	zend_llist_element *tmp = pemalloc(sizeof(zend_llist_element)+l->size-1, l->persistent);
@@ -186,6 +185,14 @@ ZEND_API void zend_llist_apply(zend_llist *l, llist_apply_func_t func)
 	}
 }
 
+static void zend_llist_swap(zend_llist_element **p, zend_llist_element **q)
+{
+	zend_llist_element *t;
+	t = *p;
+	*p = *q;
+	*q = t;
+}
+
 ZEND_API void zend_llist_sort(zend_llist *l, llist_compare_func_t comp_func)
 {
 	size_t i;
@@ -205,7 +212,8 @@ ZEND_API void zend_llist_sort(zend_llist *l, llist_compare_func_t comp_func)
 		*ptr++ = element;
 	}
 
-	zend_qsort(elements, l->count, sizeof(zend_llist_element *), (compare_func_t) comp_func);
+	zend_sort(elements, l->count, sizeof(zend_llist_element *),
+			(swap_func_t) zend_llist_swap, (compare_func_t) comp_func);
 
 	l->head = elements[0];
 	elements[0]->prev = NULL;
